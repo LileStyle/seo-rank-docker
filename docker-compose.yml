@@ -1,0 +1,47 @@
+version: '2'
+
+services:
+   # mysql
+  mysql:
+    image: 'mysql/mysql-server'
+    environment:
+      - MYSQL_ROOT_PASSWORD=mmy-secret-pw
+    ports:
+      - 3306:3306
+    volumes:
+      - ~/datas/smt2/mysql:/var/lib/mysql
+   # redis
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+   # node
+  node:
+    image: node:alpine
+    volumes:
+      - ./:/app
+    ports:
+      - "3000:3000"
+    command: node app/node_apps/messaging_general/socket.js
+   # beanstalk
+  beanstalk:
+    image: bevand10/alpine-beanstalk:latest
+    ports:
+      - "11300:11300"
+   # nginx-php-7 whitehart/nginx-php-7
+  web:
+    tty: true
+    image: 'whitehart/nginx-php-7'
+    depends_on:
+      - mysql
+    ports:
+      - 81:80
+      - 443:443
+    volumes:
+      - ~/configs/smt2/nginx:/etc/nginx/conf.d
+      - ./:/var/www/html/
+      - ~/logs/smt2/nginx:/var/log/nginx
+
+      /var/log/nginx/error.log
+
+
